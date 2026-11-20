@@ -11,7 +11,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import BusinessConnection, BusinessMessagesDeleted, Message
 
 # ───────────────────────── НАСТРОЙКИ ─────────────────────────
-BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN"
+BOT_TOKEN = "9034580639:AAEd-ReBIIRMqbqklCeXT1VslOcak_lY2Ss"
 SAVE_OWN_DELETED = False  # True — сохранять и твои удалённые сообщения тоже
 DB_PATH = "bot.db"
 
