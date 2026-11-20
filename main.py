@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Telegram Business бот (чат-бот для бизнес-аккаунта).
-
-pip install -U "aiogram>=3.13"
-python bot.py
-"""
 import asyncio
 import html
 import logging
@@ -18,7 +11,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import BusinessConnection, BusinessMessagesDeleted, Message
 
 # ───────────────────────── НАСТРОЙКИ ─────────────────────────
-BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN"
+BOT_TOKEN = "9034580639:AAEd-ReBIIRMqbqklCeXT1VslOcak_lY2Ss"
 SAVE_OWN_DELETED = False  # True — сохранять и твои удалённые сообщения тоже
 DB_PATH = "bot.db"
 
