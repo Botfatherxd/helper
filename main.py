@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Telegram Business бот (чат-бот для бизнес-аккаунта).
+
+pip install -U "aiogram>=3.13"
+python bot.py
+"""
 import asyncio
 import html
 import logging
@@ -11,7 +18,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import BusinessConnection, BusinessMessagesDeleted, Message
 
 # ───────────────────────── НАСТРОЙКИ ─────────────────────────
-BOT_TOKEN = "9034580639:AAEd-ReBIIRMqbqklCeXT1VslOcak_lY2Ss"
+BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN"
 SAVE_OWN_DELETED = False  # True — сохранять и твои удалённые сообщения тоже
 DB_PATH = "bot.db"
 
@@ -116,7 +123,7 @@ def instruction_text() -> str:
         "<b>.mute — мут собеседника (его новые сообщения удаляются)</b>\n"
         "<b>.unmute — снять мут</b>\n"
         "<b>.dox — фановый шаблон</b>\n"
-        "<b>.hack — фейковый «взлом»</b>\n"
+        "<b>.hack — анимация «взлома»</b>\n"
         "<b>.help — список команд</b>\n\n"
         "<b>🗑 Удалённые сообщения собеседников приходят сюда, в личку бота.</b>\n\n"
         f"{E_HEART} {E_SHIELD} {E_GIFT} {E_CHECK}"
@@ -149,8 +156,7 @@ def dox_text(name: str) -> str:
         "пароль от wifi: расiя\n"
         "любимая еда: расiя\n"
         "паспорт: расiя\n"
-        "</blockquote>\n"
-        "<i>⚠️ шуточный шаблон, данные не настоящие</i>"
+        "</blockquote>"
     )
 
 
@@ -161,7 +167,7 @@ HACK_FRAMES = [
     "🗂 Скачивание переписок...\n[██████░░░░] 60%",
     "💾 Копирование фото кота...\n[████████░░] 80%",
     "🚀 Отправка данных...\n[██████████] 100%",
-    "✅ Взлом завершён!\n<i>(это шутка 😄)</i>",
+    "✅ Взлом завершён!",
 ]
 
 FMT_TAGS = {
@@ -216,6 +222,26 @@ async def flash(bot: Bot, m: Message, text: str, delay: float = 2.0):
         pass
 
 
+DOX_STAGES = [
+    (0, 3, "🔎 Поиск по неполным данным"),
+    (4, 6, "🥖 Ищу отца в хлебном отделе"),
+    (7, 9, "🧩 Собираю в единое"),
+]
+mute_warned = set()
+
+
+async def run_dox(bot: Bot, m: Message):
+    """Анимация: шкала заполняется понемногу, в конце итог."""
+    for start, end, title in DOX_STAGES:
+        for n in range(start, end + 1):
+            bar = "█" * n + "░" * (10 - n)
+            await edit(bot, m, f"<b>{title}...</b>\n<b>[{bar}] {n * 10}%</b>")
+            await asyncio.sleep(0.7)
+    await edit(bot, m, "<b>✅ Итог</b>\n<b>[██████████] 100%</b>")
+    await asyncio.sleep(0.8)
+    await edit(bot, m, dox_text(m.chat.first_name or m.chat.title or ""))
+
+
 def extract(m: Message):
     if m.text:
         return "text", None
@@ -261,7 +287,7 @@ async def on_connection(conn: BusinessConnection, bot: Bot):
 @router.business_message()
 async def on_business_message(m: Message, bot: Bot):
     cid = m.business_connection_id
-    owner_id, _ = await get_owner(bot, cid)
+    owner_id, user_chat_id = await get_owner(bot, cid)
 
     # сообщение от владельца аккаунта
     if m.from_user and m.from_user.id == owner_id:
@@ -273,7 +299,16 @@ async def on_business_message(m: Message, bot: Bot):
         try:
             await bot.delete_business_messages(cid, [m.message_id])
         except TelegramAPIError as e:
-            logging.warning("mute delete failed (нужны права на удаление ВСЕХ сообщений): %s", e)
+            logging.warning("mute delete failed: %s", e)
+            if cid not in mute_warned:
+                mute_warned.add(cid)
+                await bot.send_message(
+                    user_chat_id,
+                    "<b>⚠️ Мут не сработал: не удалось удалить сообщение собеседника.</b>\n"
+                    "<b>Открой Настройки → Telegram для бизнеса → Чат-боты → твой бот "
+                    "и включи право «Удалять все сообщения» (и «Удалять отправленные»).</b>\n"
+                    f"<b>Ошибка:</b> <code>{html.escape(str(e))}</code>",
+                )
         return
 
     cache(m)
@@ -294,12 +329,12 @@ async def handle_owner(m: Message, bot: Bot):
         arg = parts[1].strip().lower() if len(parts) > 1 else ""
 
         if cmd == ".dox":
-            await edit(bot, m, dox_text(m.chat.first_name or m.chat.title or ""))
+            await run_dox(bot, m)
             return
 
         if cmd == ".hack":
             for frame in HACK_FRAMES:
-                await edit(bot, m, f"<b>{frame}</b>" if "<i>" not in frame else frame)
+                await edit(bot, m, f"<b>{frame}</b>")
                 await asyncio.sleep(0.9)
             return
 
