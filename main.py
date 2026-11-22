@@ -25,7 +25,7 @@ from aiogram.types import (
 )
 
 # ───────────────────────── НАСТРОЙКИ ─────────────────────────
-BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN"
+BOT_TOKEN = "9034580639:AAEd-ReBIIRMqbqklCeXT1VslOcak_lY2Ss"
 SAVE_OWN_DELETED = False   # True — сохранять и твои удалённые сообщения тоже
 DB_PATH = "bot.db"
 DEFAULT_TZ = 3             # часовой пояс по умолчанию (UTC+3 = Москва), меняется командой .tz
